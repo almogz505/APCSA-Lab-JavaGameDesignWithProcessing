@@ -1,5 +1,5 @@
 /* Game Class Starter File
- * Authors: Joel A. Bianchi
+ * Authors: Almog Zegaya
  * Last Edit: 5/13/25
  * using new Screen show method
  */
@@ -16,7 +16,7 @@ public class Game extends PApplet{
   PApplet p;
 
   // VARIABLES: Title Bar
-  String titleText = "PeanutChessSkyHorse2";
+  String titleText = "Battleship";
   String extraText = "CurrentLevel?";
   String name = "";
 
