@@ -113,7 +113,7 @@ public class Game extends PApplet{
     splashScreen = new Screen(this, "splash", splashBg);
     level1Grid = new Grid(this, "chessBoard", level1Bg, 10, 5);
     //level1Grid.startPrintingGridMarks();
-    level2World = new World(p, "sky", level2Bg, 4.0f, 0.0f, -800.0f); //moveable World constructor --> defines center & scale (x, scale, y)???
+    level2World = new World(p, "sky", level2BgFile, 4.0f, 0.0f, -800.0f); //moveable World constructor --> defines center & scale (x, scale, y)???
     System.out.println( "World constructed: " + Util.toStringPImage(level2World.getBgImage()));
        
     // level2World = new World("sky", level2Bg);   //non-moving World construtor

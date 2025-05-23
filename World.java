@@ -38,10 +38,10 @@ public class World extends Screen{
   }
 
   // World Constructor #5: Creates a World with a moving background.  (not working!)
-  // public World(PApplet p, String name, PImage movingBg, float scale, float x, float y) {
-  //   super(p, name, movingBg, scale, x, y);
-  //   System.out.println("World " + name + " constructed with " + Util.toStringPImage(movingBg));
-  // }
+  public World(PApplet p, String name, PImage movingBg, float scale, float x, float y) {
+    super(p, name, movingBg, scale, x, y);
+    System.out.println("World " + name + " constructed with " + Util.toStringPImage(movingBg));
+  }
 
 
   //------------------ WORLD SPRITE METHODS --------------------//
