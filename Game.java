@@ -1,15 +1,13 @@
-/**
- * Game Class - Primary game logic for a Java-based Processing Game
- * @author Almog Zegaya
- * @version 6/12/25
- * No need to create PImage for bg
+/* Game Class Starter File
+ * Authors: Almog Zegaya
+ * Last Edit: 5/26/25
+ * Added example for using grid method setAllMarks()
  */
 
 //import processing.sound.*;
-import processing.core.PApplet;
 import processing.core.PConstants;
+import processing.core.PApplet;
 import processing.core.PImage;
-
 
 public class Game extends PApplet{
 
@@ -34,11 +32,12 @@ public class Game extends PApplet{
 
   // VARIABLES: grid1 Screen (pieces on a grid pattern)
   Grid grid1;
+  PImage grid1Bg;
   String grid1BgFile = "images/BattleshipBG.jpg";
   PImage piece1;   // Use PImage to display the image in a GridLocation
   String piece1File = "images/x_wood.png";
-  int piece1Row = 3;
-  int piece1Col = 0;
+  int targetX = (int)(Math.random() * 11) ;
+  int targetY = (int)(Math.random() * 6) ;
   AnimatedSprite chick;
   String chickFile = "sprites/chick_walk.png";
   String chickJson = "sprites/chick_walk.json";
@@ -46,9 +45,11 @@ public class Game extends PApplet{
   int chickCol = 2;
   int health = 3;
   Button b1;
+  int counter = 0;
 
   // VARIABLES: skyWorld Screen (characters move by pixels)
   World skyWorld;
+  PImage skyWorldBg;
   String skyWorldBgFile = "images/sky.png";
   Sprite zapdos; //Use Sprite for a pixel-based Location
   String zapdosFile = "images/zapdos.png";
@@ -86,7 +87,7 @@ public class Game extends PApplet{
 
   //Required Processing method that gets run once
   public void setup() {
-
+    
     //SETUP: Set the title on the title bar
     surface.setTitle(titleText);
     p.imageMode(PConstants.CORNER);    //Set Images to read coordinates at corners
@@ -94,8 +95,6 @@ public class Game extends PApplet{
     //SETUP: Construct each Screen, World, Grid
     splashScreen = new Screen(p, "splash", splashBgFile);
     grid1 = new Grid(p, "chessBoard", grid1BgFile, 10, 5);
-    skyWorld = new World(p, "sky", skyWorldBgFile, 4.0f, 0.0f, -800.0f); //moveable World constructor
-    brickWorld = new World(p,"platformer", brickWorldBgFile);
     endScreen = new World(p, "end", endBgFile);
     currentScreen = splashScreen;
 
@@ -127,20 +126,6 @@ public class Game extends PApplet{
     grid1.startPrintingGridMarks();
     System.out.println("Done loading Level 1 (grid1)...");
     
-    //SETUP: Setup more skyWorld objects
-    zapdos = new Sprite(p, zapdosFile, 0.25f);
-    zapdos.moveTo(zapdosStartX, zapdosStartY);
-    skyWorld.addSprite(zapdos);
-    skyWorld.addSpriteCopyTo(runningHorse, 100, 200);  //example Sprite added to a World at a location, with a speed
-    skyWorld.printWorldSprites();
-    System.out.println("Done loading Level 2 (skyWorld)...");
-
-    // SETUP: Setup more brickWorld objects
-    plat = new Platform(p, PColor.MAGENTA, 500.0f, 100.0f, 200.0f, 20.0f);
-    plat.setOutlineColor(PColor.BLACK);
-    // plat.startGravity(5.0f); //sets gravity to a rate of 5.0
-    brickWorld.addSprite(plat);    
-    System.out.println("Done loading Level 3 (brickWorld)...");
 
 
     //SETUP: Sound
@@ -250,8 +235,8 @@ public class Game extends PApplet{
     System.out.println("\nMouse was clicked at (" + p.mouseX + "," + p.mouseY + ")");
 
     // Display color of pixel clicked
-    int color = p.get(p.mouseX, p.mouseY);
-    PColor.printPColor(p, color);
+    // int color = p.get(p.mouseX, p.mouseY);
+    // PColor.printPColor(p, color);
 
     // if the Screen is a Grid, print grid coordinate clicked
     if(currentScreen instanceof Grid){
@@ -265,8 +250,13 @@ public class Game extends PApplet{
 
     // what to do if clicked? (ex. assign a new location to piece1)
     if(currentScreen == grid1){
-      piece1Row = grid1.getGridLocation().getRow();
-      piece1Col = grid1.getGridLocation().getCol();
+      int clickedX = ((Grid) currentScreen).getGridLocation().getXCoord();
+      int clickedY = ((Grid) currentScreen).getGridLocation().getYCoord();
+      counter++;
+
+      int ring = Math.max(Math.abs(clickedX - targetX), Math.abs(clickedY - targetY));
+      System.out.println("ring" +ring);
+
     }
     
 
@@ -316,7 +306,7 @@ public class Game extends PApplet{
       System.out.print("1");
 
       // Displays the piece1 image
-      GridLocation piece1Loc = new GridLocation(piece1Row,piece1Col);
+      GridLocation piece1Loc = new GridLocation(targetX,targetY);
       grid1.setTileImage(piece1Loc, piece1);
 
       // Displays the chick image
@@ -455,4 +445,4 @@ public class Game extends PApplet{
   }
 
 
-} // end of Game class
+} //close class
