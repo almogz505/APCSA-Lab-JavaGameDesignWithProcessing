@@ -28,6 +28,8 @@ public class Game extends PApplet{
   // VARIABLES: splashScreen
   Screen splashScreen;
   String splashBgFile = "images/apcsa.png";
+  Sprite gridImage;
+
   //SoundFile song;
 
   // VARIABLES: grid1 Screen (pieces on a grid pattern)
@@ -36,34 +38,27 @@ public class Game extends PApplet{
   String grid1BgFile = "images/BattleshipBG.jpg";
   PImage piece1;   // Use PImage to display the image in a GridLocation
   String piece1File = "images/x_wood.png";
-  int targetX = (int)(Math.random() * 11) ;
-  int targetY = (int)(Math.random() * 6) ;
+  int gridHeight = 10;
+  int gridWidth = 5;
+  int targetX = (int)(Math.random() * gridWidth) ;
+  int targetY = (int)(Math.random() * gridHeight) ;
   AnimatedSprite chick;
   String chickFile = "sprites/chick_walk.png";
   String chickJson = "sprites/chick_walk.json";
   int chickRow = 0;
   int chickCol = 2;
   int health = 3;
-  Button b1;
-  int counter = 0;
-
-  // VARIABLES: skyWorld Screen (characters move by pixels)
-  World skyWorld;
-  PImage skyWorldBg;
-  String skyWorldBgFile = "images/sky.png";
-  Sprite zapdos; //Use Sprite for a pixel-based Location
-  String zapdosFile = "images/zapdos.png";
-  int zapdosStartX = 50;
-  int zapdosStartY = 300;
-
-  //VARIABLES: brickWorld Screen (characters jump on platforms with gravity)
-  World brickWorld;
-  String brickWorldBgFile = "images/wall.jpg";
-  Platform plat;
+  // Button b1;
+  int clicks = 0;
+  int rings = -1;
+  PImage missImage ;
+  PImage hitImage;
 
   // VARIABLES: endScreen
-  World endScreen;
-  String endBgFile = "images/youwin.png";
+  Screen winScreen;
+  Screen loseScreen;
+  String winBgFile = "images/youwin.png";
+  String loseBgFile = "images/wall.jpg";
 
 
   // VARIABLES: Tracking the current Screen being displayed
@@ -78,7 +73,7 @@ public class Game extends PApplet{
   // Processing method that runs once for screen resolution settings
   public void settings() {
     //SETUP: Match the screen size to the background image size
-    size(600,800);  //these will automatically be saved as width & height
+    size(400,800);  //these will automatically be saved as width & height
 
     // Allows p variable to be used by other classes to access PApplet methods
     p = this;
@@ -87,6 +82,8 @@ public class Game extends PApplet{
 
   //Required Processing method that gets run once
   public void setup() {
+
+    System.out.println("Target:\t x:" + targetX + ", y:" + targetY);
     
     //SETUP: Set the title on the title bar
     surface.setTitle(titleText);
@@ -94,26 +91,35 @@ public class Game extends PApplet{
 
     //SETUP: Construct each Screen, World, Grid
     splashScreen = new Screen(p, "splash", splashBgFile);
-    grid1 = new Grid(p, "chessBoard", grid1BgFile, 10, 5);
-    endScreen = new World(p, "end", endBgFile);
+    grid1 = new Grid(p, "chessBoard", grid1BgFile, gridHeight, gridWidth);
+    winScreen = new Screen(p, "win", winBgFile);
+    loseScreen = new Screen(p, "Lose", loseBgFile);
     currentScreen = splashScreen;
+
+    gridImage = new Sprite(p, "images/grid.png", 1.25f, 0,35);
+    gridImage.resize(400, 400);
+    grid1.addSprite(gridImage);
+
+    Sprite g2 = gridImage.copy();
+    g2.moveTo(0, 400);
+    grid1.addSprite(g2);
 
     //SETUP: Construct Game objects used in All Screens
     runningHorse = new AnimatedSprite(p, "sprites/horse_run.png", "sprites/horse_run.json", 50.0f, 75.0f, 1.0f);
 
     //SETUP: Setup more grid1 objects
-    // piece1 = p.loadImage(piece1File);
-    // piece1.resize(grid1.getTileWidth(),grid1.getTileHeight());
-    // chick = new AnimatedSprite(p, chickFile, chickJson, 0.0f, 0.0f, 0.5f);
-    // grid1.setTileSprite(new GridLocation (chickRow, chickCol), chick);
-    b1 = new Button(p, "rect", 625, 525, 150, 50, "GoTo Level 2");
-    grid1.addSprite(b1);
-    // b1.setFontStyle("fonts/spidermanFont.ttf");
-    b1.setFontStyle("Calibri");
-    b1.setTextColor(PColor.WHITE);
-    b1.setButtonColor(PColor.BLACK);
-    b1.setHoverColor(PColor.get(100,50,200));
-    b1.setOutlineColor(PColor.WHITE);
+    missImage = loadImage("images/Miss.png");
+    missImage.resize(grid1.getTileWidth(), grid1.getTileHeight());
+    hitImage = loadImage("images/Hit.png");
+    hitImage.resize(grid1.getTileWidth(), grid1.getTileHeight());
+    // b1 = new Button(p, "rect", 625, 525, 150, 50, "GoTo Level 2");
+    // grid1.addSprite(b1);
+    // // b1.setFontStyle("fonts/spidermanFont.ttf");
+    // b1.setFontStyle("Calibri");
+    // b1.setTextColor(PColor.WHITE);
+    // b1.setButtonColor(PColor.BLACK);
+    // b1.setHoverColor(PColor.get(100,50,200));
+    // b1.setOutlineColor(PColor.WHITE);
     String[][] tileMarks = {
       {"R","N","B","Q","K","B","N","R"},
       {"P","P","P","P","P","P","P","P"},
@@ -163,8 +169,11 @@ public class Game extends PApplet{
     currentScreen.pause(cycleTime);   // slows down the game cycles
 
     // DRAW LOOP: Check for end of game
-    if(isGameOver()){
-      endGame();
+    if(didIWin()){
+      winGame();
+    }
+    if(didILose()){
+      loseGame();
     }
 
   } //end draw()
@@ -190,10 +199,7 @@ public class Game extends PApplet{
         chickRow++;
       }
 
-      // if the 'n' key is pressed, ask for their name
-      if(p.key == 'n'){
-        name = Input.getString("What is your name?");
-      }
+
 
       // if the 't' key is pressed, then toggle the animation on/off
       if(p.key == 't'){
@@ -206,26 +212,12 @@ public class Game extends PApplet{
 
     }
 
-    if(currentScreen == brickWorld){
-      if(p.key == 'w'){
-        plat.jump();
-      }
-    }
 
     //CHANGING SCREENS BASED ON KEYS
     //change to level1 if 1 key pressed, level2 if 2 key is pressed
     if(p.key == '1'){
       currentScreen = grid1;
-    } else if(p.key == '2'){
-      currentScreen = skyWorld;
-    } else if(p.key == '3'){
-      currentScreen = brickWorld;
-
-      //reset the moving Platform every time the Screen is re-displayed
-      plat.moveTo(500.0f, 100.0f);
-      plat.setSpeed(0,0);
-    }
-
+    } 
   }
 
   // Known Processing method that automatically will run when a mouse click triggers it
@@ -250,14 +242,23 @@ public class Game extends PApplet{
 
     // what to do if clicked? (ex. assign a new location to piece1)
     if(currentScreen == grid1){
-      int clickedX = ((Grid) currentScreen).getGridLocation().getXCoord();
-      int clickedY = ((Grid) currentScreen).getGridLocation().getYCoord();
-      counter++;
 
-      int ring = Math.max(Math.abs(clickedX - targetX), Math.abs(clickedY - targetY));
-      System.out.println("ring" +ring);
+      GridLocation loc = ((Grid) currentScreen).getGridLocation();
+      int clickedX = loc.getXCoord();
+      int clickedY = loc.getYCoord();
+      clicks++;
+      System.out.println(clicks);
+
+      rings = Math.max(Math.abs(clickedX - targetX), Math.abs(clickedY - targetY));
+      System.out.println("rings" +rings);
+
+      if(rings != 0){
+        grid1.setTileImage(loc, missImage);
+      }
 
     }
+
+  
     
 
   }
@@ -269,12 +270,11 @@ public class Game extends PApplet{
   // Updates the title bar of the Game
   public void updateTitleBar(){
 
-    if(!isGameOver()) {
+    if(!didIWin()) {
 
-      extraText = currentScreen.getName();
 
       //set the title each loop
-      surface.setTitle(titleText + "\t// CurrentScreen: " + extraText + " \t // Name: " + name + "\t // Health: " + health );
+      surface.setTitle(titleText + "\t// Clicks: " + clicks + " \t // Rings " + rings );
 
       //adjust the extra text as desired
     
@@ -306,46 +306,16 @@ public class Game extends PApplet{
       System.out.print("1");
 
       // Displays the piece1 image
-      GridLocation piece1Loc = new GridLocation(targetX,targetY);
+      GridLocation piece1Loc = new GridLocation(targetY, targetX);
       grid1.setTileImage(piece1Loc, piece1);
 
       // Displays the chick image
       GridLocation chickLoc = new GridLocation(chickRow, chickCol);
       grid1.setTileSprite(chickLoc, chick);
 
-      // Moves to next level based on a button click
-      // b1.show();
-      if(b1.isClicked()){
-        System.out.println("\nButton Clicked");
-        currentScreen = skyWorld;
-      }
-    
     }
     
-    // UPDATE: skyWorld Screen
-    if(currentScreen == skyWorld){
-
-      // Print a '2' in console when skyWorld
-      System.out.print("2");
-
-      // Set speed of moving skyWorld background
-      skyWorld.moveBgXY(-0.3f, 0f);
-
-    }
-
-    // UPDATE: brickWorld Screen
-    if(currentScreen == brickWorld){
-
-      // Print a '3 in console when brickWorld
-      System.out.print("3");
-
-
-    }
-
-    // UPDATE: End Screen
-    // if(currentScreen == endScreen){
-
-    // }
+ 
 
     // UPDATE: Any Screen
     if(doAnimation){
@@ -428,21 +398,44 @@ public class Game extends PApplet{
   }
 
   // Indicates when the main game is over
-  public boolean isGameOver(){
+  public boolean didIWin(){
+
+    if (rings == 0){
+      return true;
+    }
     
     return false; //by default, the game is never over
   }
 
+  public boolean didILose(){
+
+    if (clicks == 8){
+      return true;
+    }
+    
+    return false; //by default, the game is never over
+  }
+
+
   // Describes what happens after the game is over
-  public void endGame(){
+  public void winGame(){
       System.out.println("Game Over!");
 
       // Update the title bar
 
       // Show any end imagery
-      currentScreen = endScreen;
+      currentScreen = winScreen;
 
   }
+  // Describes what happens after the game is over
+  public void loseGame(){
+      System.out.println("Game Over!");
 
+      // Update the title bar
+
+      // Show any end imagery
+      currentScreen = loseScreen;
+
+  }
 
 } //close class
